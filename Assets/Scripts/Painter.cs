@@ -1,30 +1,13 @@
-using CW.Common;
 using UnityEngine;
-using UnityEngine.EventSystems;
-public class Painting : MonoBehaviour
+
+public class Painter : MonoBehaviour
 {
-    public static Painting Instance { get; private set; }
-    
     private Vector3 clickPos;
     private Vector3 startPos;
     public ParticleSystem sprayParticle;
-
-    
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-        }
-    }
     
     private void Update()
-    { 
-
+    {
         var fingerPos = CameraController.Instance.inputCam.ScreenToWorldPoint(Input.mousePosition);
 
         if (Input.GetMouseButtonDown(0))
@@ -33,13 +16,11 @@ public class Painting : MonoBehaviour
             clickPos = fingerPos;
 
             sprayParticle.Play();
-           
         }
 
         if (Input.GetMouseButtonUp(0))
         {
             sprayParticle.Stop();
-            
         }
 
         if (Input.GetMouseButton(0))
@@ -75,5 +56,4 @@ public class Painting : MonoBehaviour
             group.interactable   = alpha > 0.0f;
         }
     }
-    
 }

@@ -16,7 +16,7 @@ public class Hat : MonoBehaviour
     {
         var sequence = DOTween.Sequence();
         sequence.Insert(0f, transform.DORotate(new Vector3(-108f, 0, 0), .5f));
-        sequence.Insert(0f, transform.DOJump(new Vector3(0f, 4.72f, 1.65f), 6f, 1, .5f));
+        sequence.Insert(0f, transform.DOJump(new Vector3(0, 9.47f, 0), 6f, 1, .5f));
         // sequence.Insert(0f, transform.DOLocalMoveY(4.72f, 1f));
         // sequence.Insert(0f, transform.DOLocalMoveZ(1.65f, 1f));
         

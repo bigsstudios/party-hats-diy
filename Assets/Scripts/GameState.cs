@@ -2,5 +2,6 @@
 {
     JustStarted,
     Bending,
-    Painting
+    Painting,
+    Capping
 }
