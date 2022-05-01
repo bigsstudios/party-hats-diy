@@ -3,5 +3,6 @@
     JustStarted,
     Bending,
     Painting,
-    Capping
+    Capping,
+    Decorating
 }

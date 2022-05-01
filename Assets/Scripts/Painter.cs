@@ -1,13 +1,34 @@
+using PaintIn3D;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class Painter : MonoBehaviour
 {
     private Vector3 clickPos;
     private Vector3 startPos;
     public ParticleSystem sprayParticle;
+    public P3dPaintSphere paintSphere;
+    public MeshRenderer canRenderer;
+
+    public void SetColor(Color32 color)
+    {
+        var sprayParticleMain = sprayParticle.main;
+        var gradient = new ParticleSystem.MinMaxGradient
+        {
+            color = color
+        };
+        sprayParticleMain.startColor = gradient;
+        paintSphere.Color = color;
+        canRenderer.materials[1].color = color;
+    }
     
     private void Update()
     {
+        if (EventSystem.current.IsPointerOverGameObject()) return;
+        if (Input.touchCount > 0 && Input.touches[0].phase == TouchPhase.Began)
+            if (EventSystem.current.IsPointerOverGameObject(Input.touches[0].fingerId))
+                return;
+        
         var fingerPos = CameraController.Instance.inputCam.ScreenToWorldPoint(Input.mousePosition);
 
         if (Input.GetMouseButtonDown(0))
