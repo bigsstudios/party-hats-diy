@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class HatMaker : MonoBehaviour
@@ -20,18 +21,19 @@ public class HatMaker : MonoBehaviour
     public Transform capPanel;
     public Transform decorationPanel;
     public Transform craftingTables;
+    public CanvasGroup loadingCanvasGroup;
 
     private readonly Dictionary<string, Color32> colorMap = new Dictionary<string, Color32>
     {
-        { "Black" ,Color.black },
-        { "Blue" , new Color32(30, 144, 255, 255) },
-        { "Red" ,Color.red },
-        { "Yellow" ,Color.yellow },
-        { "White" ,Color.white },
-        { "Green" ,Color.green },
-        { "Pink" , new Color32(255, 20, 147, 255) },
-        { "Purple" , new Color32(148, 0, 211, 255) },
-        { "Orange" , new Color32(255, 140, 0, 255)},
+        { "Black", Color.black },
+        { "Blue", new Color32(30, 144, 255, 255) },
+        { "Red", Color.red },
+        { "Yellow", Color.yellow },
+        { "White", Color.white },
+        { "Green", Color.green },
+        { "Pink", new Color32(255, 20, 147, 255) },
+        { "Purple", new Color32(148, 0, 211, 255) },
+        { "Orange", new Color32(255, 140, 0, 255) },
     };
 
     public CapHolder[] caps;
@@ -40,6 +42,7 @@ public class HatMaker : MonoBehaviour
     [Header("Bending")]
     [Range(1f, 50f)]
     public float bendingSpeed = 25f;
+
     public Transform bendingGesture;
 
     private float bendAmount;
@@ -48,16 +51,27 @@ public class HatMaker : MonoBehaviour
     [Header("Painting")]
     private float showcaseRotY;
 
+    private string currentColor = "Red";
+
     [Header("Capping")]
     private CapHolder selectedCapHolder;
 
     [Header("Decorating")]
     private DecorHolder selectedDecorHolder;
 
+    [Header("Showcasing")]
+    public ParticleSystem confetti1;
+    public ParticleSystem confetti2;
+
     private void Start()
     {
-        StartCoroutine(SetState(GameState.Bending));
         lastCraftingTableX = craftingTables.position.x;
+        
+        loadingCanvasGroup.DOFade(0f, 0.5f).OnComplete(() =>
+        {
+            loadingCanvasGroup.blocksRaycasts = false;
+            StartCoroutine(SetState(GameState.Bending));
+        });
     }
 
     private void Update()
@@ -94,7 +108,7 @@ public class HatMaker : MonoBehaviour
 
                 break;
             case GameState.Painting:
-                
+
                 break;
         }
     }
@@ -124,34 +138,42 @@ public class HatMaker : MonoBehaviour
 
     private IEnumerator StateFinishing(GameState state)
     {
-        if (state == GameState.Bending)
+        switch (state)
         {
-            bendingGesture.gameObject.SetActive(false);
-            BringNewTable();
-            yield return StartCoroutine(hat.PrepareForPainting());
+            case GameState.Bending:
+                bendingGesture.gameObject.SetActive(false);
+                BringNewTable();
+                yield return StartCoroutine(hat.PrepareForPainting());
+                break;
+            case GameState.Painting:
+                BringNewTable();
+                hat.transform.DOJump(new Vector3(0, 0, 0), 6f, 1, .5f);
+                break;
+            case GameState.Capping:
+            {
+                if (selectedCapHolder != null)
+                    yield return selectedCapHolder.cap.transform.DOLocalMoveY(20f, 1f).WaitForCompletion();
+                UnparentAllCaps();
+                BringNewTable();
+                hat.transform.DOJump(new Vector3(0, 0, 0), 6f, 1, .5f);
+                sprayCanPanel.gameObject.SetActive(false);
+                spray.gameObject.SetActive(false);
+                capPanel.gameObject.SetActive(false);
+                break;
+            }
+            case GameState.Decorating:
+                BringNewTable();
+                hat.transform.DOJump(new Vector3(0, 0, 0), 6f, 1, .5f);
+                decorationPanel.gameObject.SetActive(false);
+                break;
         }
-        else if (state == GameState.Painting)
+    }
+
+    private void UnparentAllCaps()
+    {
+        foreach (var capHolder in caps)
         {
-            BringNewTable();
-            hat.transform.DOJump(new Vector3(0, 0, 0), 6f, 1, .5f);
-        }
-        else if (state == GameState.Capping)
-        {
-            if(selectedCapHolder != null)
-                yield return selectedCapHolder.cap.transform.DOLocalMoveY(20f, 1f).WaitForCompletion();
-            BringNewTable();
-            hat.transform.DOJump(new Vector3(0, 0, 0), 6f, 1, .5f);
-            sprayCanPanel.gameObject.SetActive(false);
-            spray.gameObject.SetActive(false);
-            capPanel.gameObject.SetActive(false);
-        }
-        else if (state == GameState.Decorating)
-        {
-            BringNewTable();
-            hat.transform.DOJump(new Vector3(0, 0, 0), 6f, 1, .5f);
-            sprayCanPanel.gameObject.SetActive(false);
-            spray.gameObject.SetActive(false);
-            capPanel.gameObject.SetActive(false);
+            capHolder.cap.transform.SetParent(transform.parent);
         }
     }
 
@@ -199,7 +221,23 @@ public class HatMaker : MonoBehaviour
                 capPanel.gameObject.SetActive(false);
                 decorationPanel.gameObject.SetActive(true);
                 break;
+            case GameState.Showcasing:
+                StartCoroutine(Confetti());
+                break;
         }
+    }
+
+    private IEnumerator Confetti()
+    {
+        yield return new WaitForSeconds(0.5f);
+        confetti1.Play();
+        confetti2.Play();
+        yield return new WaitForSeconds(3f);
+        yield return loadingCanvasGroup.DOFade(1f, 0.5f).WaitForCompletion();
+        hat.gameObject.SetActive(false);
+        hat.transform.SetParent(transform.parent);
+        hat.MakeDontDestroyOnLoad();
+        SceneManager.LoadScene("MainScene");
     }
 
     private static Vector3 GetMousePosition()
@@ -209,21 +247,26 @@ public class HatMaker : MonoBehaviour
 
     public void OkayClicked()
     {
-        if (currentState == GameState.Painting)
+        switch (currentState)
         {
-            StartCoroutine(SetState(GameState.Capping));
-        } else if (currentState == GameState.Capping)
-        {
-            StartCoroutine(SetState(GameState.Decorating));
+            case GameState.Painting:
+                StartCoroutine(SetState(GameState.Capping));
+                break;
+            case GameState.Capping:
+                StartCoroutine(SetState(GameState.Decorating));
+                break;
+            case GameState.Decorating:
+                StartCoroutine(SetState(GameState.Showcasing));
+                break;
         }
     }
 
     public void SprayCanSelected(string colorStr)
     {
-        if (colorMap.TryGetValue(colorStr, out var color))
-        {
-            spray.SetColor(color);
-        }
+        if (colorStr == currentColor) return;
+        if (!colorMap.TryGetValue(colorStr, out var color)) return;
+        spray.ColorChanged(color);
+        currentColor = colorStr;
     }
 
     public void CapSelected(string capStr)
@@ -244,10 +287,19 @@ public class HatMaker : MonoBehaviour
         var decorHolder = decors.FirstOrDefault(d => d.name == decorStr);
         if (decorHolder == null) return;
         selectedDecorHolder = decorHolder;
-        decorHolder.decor.transform.SetParent(rotatingShowcase);
-        decorHolder.decor.SetActive(true);
+        decorHolder.decor.transform.eulerAngles = Vector3.zero;
+        DeactivateDecorsBut(decorStr);
         decorHolder.decor.transform.DORewind();
-        decorHolder.decor.transform.DOPunchScale(new Vector3(1f, 1f, 1f), 1f, 2, 2f);
+        decorHolder.decor.transform.DOPunchScale(Vector3.one * decorHolder.scalePower, .2f, 2, 2f);
+    }
+
+    private void DeactivateDecorsBut(string but)
+    {
+        foreach (var decorHolder in decors)
+        {
+            decorHolder.decor.transform.SetParent(decorHolder.name == but ? hat.transform : transform.parent);
+            decorHolder.decor.gameObject.SetActive(decorHolder.name == but);
+        }
     }
 
     [Serializable]
@@ -262,5 +314,6 @@ public class HatMaker : MonoBehaviour
     {
         public string name;
         public GameObject decor;
+        public float scalePower = 1f;
     }
 }

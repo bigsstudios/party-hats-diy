@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using DG.Tweening;
 using PaintIn3D;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -9,8 +11,20 @@ public class Painter : MonoBehaviour
     public ParticleSystem sprayParticle;
     public P3dPaintSphere paintSphere;
     public MeshRenderer canRenderer;
+    private bool dragging;
 
-    public void SetColor(Color32 color)
+    public void ColorChanged(Color32 color)
+    {
+        var transform1 = transform;
+        transform1.DORewind();
+        transform1.DOMoveZ(-20f, 0.2f).OnComplete(() =>
+        {
+            SetColor(color);
+            transform1.DOMoveZ(-5.74f, 0.2f);
+        });
+    }
+
+    private void SetColor(Color32 color)
     {
         var sprayParticleMain = sprayParticle.main;
         var gradient = new ParticleSystem.MinMaxGradient
@@ -21,18 +35,27 @@ public class Painter : MonoBehaviour
         paintSphere.Color = color;
         canRenderer.materials[1].color = color;
     }
-    
+
+    private static bool IsPointerOverUIObject()
+    {
+        var eventDataCurrentPosition = new PointerEventData(EventSystem.current)
+        {
+            position = new Vector2(Input.mousePosition.x, Input.mousePosition.y)
+        };
+        var results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+        return results.Count > 0;
+    }
+
     private void Update()
     {
-        if (EventSystem.current.IsPointerOverGameObject()) return;
-        if (Input.touchCount > 0 && Input.touches[0].phase == TouchPhase.Began)
-            if (EventSystem.current.IsPointerOverGameObject(Input.touches[0].fingerId))
-                return;
-        
+        if (!dragging && IsPointerOverUIObject()) return;
+
         var fingerPos = CameraController.Instance.inputCam.ScreenToWorldPoint(Input.mousePosition);
 
         if (Input.GetMouseButtonDown(0))
         {
+            DraggingStarted();
             startPos = transform.localPosition;
             clickPos = fingerPos;
 
@@ -41,40 +64,41 @@ public class Painter : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
+            DraggingFinished();
             sprayParticle.Stop();
         }
 
-        if (Input.GetMouseButton(0))
-        {
-            var diff = (clickPos - fingerPos) / 0.5f;
+        if (!Input.GetMouseButton(0)) return;
 
-            var newPos = startPos;
-            newPos.x -= diff.x;
-            newPos.y -= diff.y;
+        var diff = (clickPos - fingerPos) / 0.5f;
 
-            //newPos.x = Mathf.Clamp(newPos.x, -0.4f, 1.4f);
-            //newPos.z = Mathf.Clamp(newPos.z, -0.85f, 1f);
+        var newPos = startPos;
+        newPos.x -= diff.x;
+        newPos.y -= diff.y;
+        newPos.z = transform.position.z;
 
-            transform.localPosition = newPos;
-        }
-        
-        
-        // Color change menu
-        
-        var group = GetComponent<CanvasGroup>();
-        
-        if (group != null)
-        {
-            var alpha = 1.0f;
+        newPos.x = Mathf.Clamp(newPos.x, -4f, 4f);
+        newPos.y = Mathf.Clamp(newPos.y, -1f, 10f);
 
-            /*if (isolateTarget != null)
-            {
-                alpha = isolateTarget.gameObject.activeInHierarchy == true ? 1.0f : 0.5f;
-            }*/
+        transform.localPosition = newPos;
+    }
 
-            group.alpha          = alpha;
-            group.blocksRaycasts = alpha > 0.0f;
-            group.interactable   = alpha > 0.0f;
-        }
+    private void DraggingStarted()
+    {
+        dragging = true;
+        BendCan(true);
+    }
+
+    private void DraggingFinished()
+    {
+        dragging = false;
+        BendCan(false);
+    }
+
+    private void BendCan(bool started)
+    {
+        var rot = transform.eulerAngles;
+        rot.x = started ? 18f : 0f;
+        transform.DORotateQuaternion(Quaternion.Euler(rot), 0.2f);
     }
 }

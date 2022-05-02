@@ -4,5 +4,6 @@
     Bending,
     Painting,
     Capping,
-    Decorating
+    Decorating,
+    Showcasing
 }

@@ -167,7 +167,7 @@ Material:
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DistortionIntensity: 0.254
+    - _DistortionIntensity: 0.134
     - _DistortionTiling: 40
     - _DstBlend: 0
     - _Float0: 9.16
@@ -216,7 +216,7 @@ Material:
     - _NoiseTile: {r: 1, g: 1, b: 0, a: 0}
     - _WaterColor: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 0}
     - _WaterColorVariation: {r: 0.2236159, g: 0.46295327, b: 0.64705884, a: 1}
-    - _WaterSpeed: {r: 0.02, g: 0.01, b: 0, a: 0}
+    - _WaterSpeed: {r: 0.2, g: -0.1, b: 0, a: 0}
     - _WaterTextureTile: {r: 0.02, g: 0.01, b: 0, a: 0}
     - _WaterTile: {r: 30, g: 30, b: 0, a: 0}
     - _tint: {r: 0.4376081, g: 0.69299674, b: 0.83823526, a: 1}
