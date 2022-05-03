@@ -22,6 +22,7 @@ public class HatMaker : MonoBehaviour
     public Transform decorationPanel;
     public Transform craftingTables;
     public CanvasGroup loadingCanvasGroup;
+    private SprayChangeEffect sprayChangeEffect = SprayChangeEffect.Bring;
 
     private readonly Dictionary<string, Color32> colorMap = new Dictionary<string, Color32>
     {
@@ -66,7 +67,7 @@ public class HatMaker : MonoBehaviour
     private void Start()
     {
         lastCraftingTableX = craftingTables.position.x;
-        
+
         loadingCanvasGroup.DOFade(0f, 0.5f).OnComplete(() =>
         {
             loadingCanvasGroup.blocksRaycasts = false;
@@ -184,7 +185,7 @@ public class HatMaker : MonoBehaviour
 
     private void BringNewTable()
     {
-        lastCraftingTableX -= 15f;
+        lastCraftingTableX -= 30f;
         craftingTables.DORewind();
         craftingTables.DOMoveX(lastCraftingTableX, .5f);
     }
@@ -265,7 +266,7 @@ public class HatMaker : MonoBehaviour
     {
         if (colorStr == currentColor) return;
         if (!colorMap.TryGetValue(colorStr, out var color)) return;
-        spray.ColorChanged(color);
+        spray.ColorChanged(color, sprayChangeEffect);
         currentColor = colorStr;
     }
 
@@ -302,6 +303,11 @@ public class HatMaker : MonoBehaviour
         }
     }
 
+    public void SetSprayChangeEffect(SprayChangeEffect effect)
+    {
+        sprayChangeEffect = effect;
+    }
+
     [Serializable]
     public class CapHolder
     {
@@ -315,5 +321,11 @@ public class HatMaker : MonoBehaviour
         public string name;
         public GameObject decor;
         public float scalePower = 1f;
+    }
+
+    public enum SprayChangeEffect
+    {
+        Bring,
+        Shake
     }
 }

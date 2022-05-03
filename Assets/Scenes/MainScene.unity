@@ -834,6 +834,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Loading Canvas
       objectReference: {fileID: 0}
+    - target: {fileID: 4984069886310857967, guid: b1f306d718662a347ae952aa7e29ad3d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4984069886310857970, guid: b1f306d718662a347ae952aa7e29ad3d,
         type: 3}
       propertyPath: m_Camera
@@ -2277,7 +2282,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 2efe2e96446da7f4b99fc1e1dad4557c, type: 3}
+    m_Font: {fileID: 12800000, guid: 745d1f8c7971940c789517debdc095cb, type: 3}
     m_FontSize: 110
     m_FontStyle: 0
     m_BestFit: 0

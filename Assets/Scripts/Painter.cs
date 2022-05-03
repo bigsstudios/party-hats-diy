@@ -13,15 +13,24 @@ public class Painter : MonoBehaviour
     public MeshRenderer canRenderer;
     private bool dragging;
 
-    public void ColorChanged(Color32 color)
+    public void ColorChanged(Color32 color, HatMaker.SprayChangeEffect effect)
     {
         var transform1 = transform;
-        transform1.DORewind();
-        transform1.DOMoveZ(-20f, 0.2f).OnComplete(() =>
+
+        if (effect == HatMaker.SprayChangeEffect.Bring)
+        {
+            transform1.DORewind();
+            transform1.DOMoveZ(-20f, 0.2f).OnComplete(() =>
+            {
+                SetColor(color);
+                transform1.DOMoveZ(-5.74f, 0.2f);
+            });
+        } else if (effect == HatMaker.SprayChangeEffect.Shake)
         {
             SetColor(color);
-            transform1.DOMoveZ(-5.74f, 0.2f);
-        });
+            transform1.DORewind();
+            transform1.DOShakeRotation(0.2f, 7f, 4);
+        }
     }
 
     private void SetColor(Color32 color)
