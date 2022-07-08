@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using DG.Tweening;
+using Tabtale.TTPlugins;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -10,6 +13,11 @@ public class GameManager : MonoBehaviour
     public Transform hatParent;
     public Animator customerAnimator;
     private static readonly int Dancing = Animator.StringToHash("Dancing");
+
+    private void Awake()
+    {
+        TTPCore.Setup();
+    }
 
     private void Start()
     {
@@ -39,6 +47,13 @@ public class GameManager : MonoBehaviour
 
     public void LoadCreativeScene()
     {
+        var levelNumber = PlayerPrefs.GetInt("levelNumber", 1);
+        
+        var parameters = new Dictionary<string, object> { { "missionName", levelNumber + ". Level" } };
+        TTPGameProgression.FirebaseEvents.MissionStarted(levelNumber, parameters);
+        
+        print("started level " + levelNumber);
+        
         loadingCanvasGroup.DOFade(1f, 0.5f).OnComplete(() =>
         {
             if (Hat.Instance != null)

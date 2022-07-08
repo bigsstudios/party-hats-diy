@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
+using Tabtale.TTPlugins;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -257,9 +258,22 @@ public class HatMaker : MonoBehaviour
                 StartCoroutine(SetState(GameState.Decorating));
                 break;
             case GameState.Decorating:
+                SendLevelCompletedEvent();
                 StartCoroutine(SetState(GameState.Showcasing));
                 break;
         }
+    }
+
+    private static void SendLevelCompletedEvent()
+    {
+        var completedLevelNumber = PlayerPrefs.GetInt("levelNumber", 1);
+        var parameters = new Dictionary<string, object> { { "missionName", completedLevelNumber + ". Level" } };
+        TTPGameProgression.FirebaseEvents.MissionComplete(parameters);
+        
+        print("finished level " + completedLevelNumber);
+        
+        var newLevelNumber = completedLevelNumber + 1;
+        PlayerPrefs.SetInt("levelNumber", newLevelNumber);
     }
 
     public void SprayCanSelected(string colorStr)
