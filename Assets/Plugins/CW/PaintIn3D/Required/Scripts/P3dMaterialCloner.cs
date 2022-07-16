@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using CW.Common;
 
 namespace PaintIn3D
@@ -12,6 +13,8 @@ namespace PaintIn3D
 	{
 		/// <summary>The material index that will be cloned. This matches the Materials list in your MeshRenderer/SkinnedMeshRenderer, where 0 is the first material.</summary>
 		public int Index { set { index = value; } get { return index; } } [SerializeField] private int index;
+
+		public Action MaterialCloned;
 
 		[System.NonSerialized]
 		private Renderer cachedRenderer;
@@ -114,6 +117,8 @@ namespace PaintIn3D
 						current   = Instantiate(original);
 
 						ReplaceAll(original, current);
+						
+						MaterialCloned?.Invoke();
 					}
 				}
 			}

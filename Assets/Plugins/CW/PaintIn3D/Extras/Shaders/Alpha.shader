@@ -59,7 +59,7 @@ Shader "Paint in 3D/Alpha"
 
       
       
-ZWrite Off ColorMask RGB
+ZWrite On ColorMask RGB
 
 
       Pass
